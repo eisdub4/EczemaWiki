@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EczemaWikiDataSchema",
+  "description": "JSON Data Contract for Eczema Wiki Static Database and State Management",
+  "type": "object",
+  "properties": {
+    "types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "summary", "symptoms", "commonLocations", "triggers", "contagiousStatus"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "symptoms": { "type": "array", "items": { "type": "string" } },
+          "commonLocations": { "type": "array", "items": { "type": "string" } },
+          "triggers": { "type": "array", "items": { "type": "string" } },
+          "contagiousStatus": { "type": "boolean", "enum": [false] },
+          "whenToSeeDoctor": { "type": "string" }
+        }
+      }
+    },
+    "treatments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "category", "summary", "mechanism", "precautions"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "category": { "type": "string", "enum": ["prescription", "otc-skincare", "lifestyle-triggers", "home-routine"] },
+          "summary": { "type": "string" },
+          "mechanism": { "type": "string" },
+          "precautions": { "type": "array", "items": { "type": "string" } },
+          "disclaimer": { "type": "string" }
+        }
+      }
+    },
+    "myths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "mythStatement", "factStatement", "explanation", "heardCount"],
+        "properties": {
+          "id": { "type": "string" },
+          "category": { "type": "string", "enum": ["contagion", "hygiene", "severity", "diet-cures"] },
+          "mythStatement": { "type": "string" },
+          "factStatement": { "type": "string" },
+          "explanation": { "type": "string" },
+          "heardCount": { "type": "integer", "minimum": 0 },
+          "canonicalUrl": { "type": "string" }
+        }
+      }
+    }
+  },
+  "required": ["types", "treatments", "myths"]
+}
