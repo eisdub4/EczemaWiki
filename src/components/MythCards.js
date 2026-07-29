@@ -1,5 +1,5 @@
 import { MYTH_CARDS } from '../data/eczema-db.js';
-import { getHeardVotes, incrementHeardVote } from '../utils/storage.js';
+import { getHeardVotes, incrementHeardVote, canUserUpvote } from '../utils/storage.js';
 
 let flippedCards = {};
 
@@ -23,6 +23,15 @@ export function renderMythCards() {
         ${MYTH_CARDS.map(myth => {
           const isFlipped = Boolean(flippedCards[myth.id]);
           const currentVoteCount = (myth.heardCount || 0) + (votes[myth.id] || 0);
+          const isUpvotable = canUserUpvote(myth.id);
+
+          const voteButtonHtml = isUpvotable
+            ? `<button class="btn-heard-vote" data-myth-id="${myth.id}" style="color: var(--neutral-600); font-weight: 600;" aria-label="I've heard this myth, click to upvote. Current count: ${currentVoteCount}">
+                 🙋‍♂️ I've heard this! (${currentVoteCount})
+               </button>`
+            : `<button class="btn-heard-vote" data-myth-id="${myth.id}" disabled aria-disabled="true" title="You have already upvoted this myth. You can vote again after 24 hours." style="color: var(--neutral-600); font-weight: 600;" aria-label="Voted. You have already upvoted this myth. You can vote again after 24 hours. Current count: ${currentVoteCount}">
+                 Voted ✓ (${currentVoteCount})
+               </button>`;
 
           return `
             <div class="flip-card-container ${isFlipped ? 'flipped' : ''}" data-myth-id="${myth.id}">
@@ -41,9 +50,7 @@ export function renderMythCards() {
                     </button>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
-                      <button class="btn-heard-vote" data-myth-id="${myth.id}" style="color: var(--neutral-600); font-weight: 600;">
-                        🙋‍♂️ I've heard this! (${currentVoteCount})
-                      </button>
+                      ${voteButtonHtml}
                       <button class="btn-share-card" data-myth-id="${myth.id}" style="color: var(--primary-700); font-weight: 600;">
                         📤 Share Fact
                       </button>
@@ -92,10 +99,13 @@ export function bindMythCardsEvents(onRender, onOpenSuggestModal) {
   voteBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (btn.disabled) return;
       const mythId = btn.getAttribute('data-myth-id');
       if (mythId) {
-        incrementHeardVote(mythId);
-        onRender();
+        const result = incrementHeardVote(mythId);
+        if (result.success) {
+          onRender();
+        }
       }
     });
   });
