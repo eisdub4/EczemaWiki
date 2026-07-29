@@ -1,4 +1,4 @@
-export function renderNavbar(activeTab = 'types', onTabChange, onSearch) {
+export function renderNavbar(activeTab = 'types', onTabChange, onSearch, searchQuery = '') {
   return `
     <header class="navbar">
       <div class="container navbar-inner">
@@ -43,6 +43,7 @@ export function renderNavbar(activeTab = 'types', onTabChange, onSearch) {
             class="search-input" 
             placeholder="Search symptoms, types, myths..."
             aria-label="Search Eczema Wiki"
+            value="${searchQuery}"
           />
         </div>
       </div>
@@ -70,7 +71,7 @@ export function bindNavbarEvents(onTabChange, onSearch) {
   const searchInput = document.getElementById('global-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      onSearch(e.target.value.trim());
+      onSearch(e.target.value);
     });
   }
 }
