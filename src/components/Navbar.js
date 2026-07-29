@@ -7,7 +7,11 @@ export function renderNavbar(activeTab = 'types', onTabChange, onSearch, searchQ
           <span>EczemaWiki</span>
         </a>
 
-        <ul class="nav-links">
+        <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-label="Toggle navigation menu">
+          ☰
+        </button>
+
+        <ul class="nav-links" id="nav-menu">
           <li>
             <button class="nav-btn ${activeTab === 'quiz' ? 'active' : ''}" data-tab="quiz">
               🧩 Symptom Quiz
@@ -60,10 +64,25 @@ export function bindNavbarEvents(onTabChange, onSearch) {
     });
   }
 
+  const navToggle = document.getElementById('nav-toggle');
+  const navMenu = document.getElementById('nav-menu');
+  if (navToggle && navMenu) {
+    navToggle.addEventListener('click', () => {
+      const isOpen = navMenu.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      navToggle.textContent = isOpen ? '✕' : '☰';
+    });
+  }
+
   const buttons = document.querySelectorAll('.nav-btn');
   buttons.forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.getAttribute('data-tab');
+      if (navMenu && navToggle) {
+        navMenu.classList.remove('is-open');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.textContent = '☰';
+      }
       if (tab) onTabChange(tab);
     });
   });
@@ -75,3 +94,4 @@ export function bindNavbarEvents(onTabChange, onSearch) {
     });
   }
 }
+
