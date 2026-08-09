@@ -113,7 +113,7 @@ export function bindQRStickerEvents() {
     });
   }
 
-  const ctaInput = document.getElementById('qr-cta-text');
+  const ctaInput = document.getElementById('qr-cta-input');
   if (ctaInput) {
     ctaInput.addEventListener('input', (e) => {
       qrOptions.ctaText = e.target.value;
@@ -121,7 +121,7 @@ export function bindQRStickerEvents() {
     });
   }
 
-  const shapeRadios = document.querySelectorAll('input[name="qr-shape"]');
+  const shapeRadios = document.querySelectorAll('input[name="qr-badge-shape"]');
   shapeRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
       qrOptions.badgeShape = e.target.value;
