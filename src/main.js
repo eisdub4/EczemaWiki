@@ -23,7 +23,7 @@ function renderApp() {
   const isSearchActive = Boolean(state.searchQuery.trim());
 
   app.innerHTML = `
-    ${renderNavbar(state.activeTab, handleTabChange, handleSearchInput)}
+    ${renderNavbar(state.activeTab, handleTabChange, handleSearchInput, state.searchQuery)}
 
     <!-- Hero Banner -->
     <section class="hero">
@@ -70,6 +70,35 @@ function renderActiveTabContent(tab) {
   }
 }
 
+function bindMainTabEvents(tab) {
+  switch (tab) {
+    case 'quiz':
+      bindSymptomQuizEvents(() => renderApp());
+      break;
+    case 'types':
+      bindEczemaTypesEvents((type) => {
+        state.selectedTypeModal = type;
+        renderApp();
+      });
+      break;
+    case 'treatments':
+      bindTreatmentsEvents(() => renderApp());
+      break;
+    case 'myths':
+      bindMythCardsEvents(
+        () => renderApp(),
+        () => {
+          state.isSuggestModalOpen = true;
+          renderApp();
+        }
+      );
+      break;
+    case 'qr':
+      bindQRStickerEvents();
+      break;
+  }
+}
+
 function bindEvents() {
   bindNavbarEvents(handleTabChange, handleSearchInput);
 
@@ -88,32 +117,7 @@ function bindEvents() {
       }
     });
   } else {
-    switch (state.activeTab) {
-      case 'quiz':
-        bindSymptomQuizEvents(() => renderApp());
-        break;
-      case 'types':
-        bindEczemaTypesEvents((type) => {
-          state.selectedTypeModal = type;
-          renderApp();
-        });
-        break;
-      case 'treatments':
-        bindTreatmentsEvents(() => renderApp());
-        break;
-      case 'myths':
-        bindMythCardsEvents(
-          () => renderApp(),
-          () => {
-            state.isSuggestModalOpen = true;
-            renderApp();
-          }
-        );
-        break;
-      case 'qr':
-        bindQRStickerEvents();
-        break;
-    }
+    bindMainTabEvents(state.activeTab);
   }
 
   if (state.selectedTypeModal) {
@@ -146,7 +150,27 @@ function handleTabChange(tab) {
 
 function handleSearchInput(query) {
   state.searchQuery = query;
-  renderApp();
+
+  const mainContainer = document.querySelector('main');
+  if (!mainContainer) {
+    renderApp();
+    return;
+  }
+
+  const isSearchActive = Boolean(state.searchQuery.trim());
+  if (isSearchActive) {
+    mainContainer.innerHTML = renderSearchResults(state.searchQuery);
+    bindSearchResultsEvents((typeId) => {
+      const found = ECZEMA_TYPES.find(t => t.id === typeId);
+      if (found) {
+        state.selectedTypeModal = found;
+        renderApp();
+      }
+    });
+  } else {
+    mainContainer.innerHTML = renderActiveTabContent(state.activeTab);
+    bindMainTabEvents(state.activeTab);
+  }
 }
 
 // Initial Launch
