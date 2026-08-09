@@ -1,4 +1,6 @@
-export function renderQRStickerCanvas(canvas, options = {}) {
+import QRCode from 'qrcode';
+
+export async function renderQRStickerCanvas(canvas, options = {}) {
   if (!canvas) return;
 
   const {
@@ -30,7 +32,16 @@ export function renderQRStickerCanvas(canvas, options = {}) {
     // Rounded square badge
     const r = 24;
     ctx.beginPath();
-    ctx.roundRect(8, 8, size - 16, size - 16, r);
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(8, 8, size - 16, size - 16, r);
+    } else {
+      const x = 8, y = 8, w = size - 16, h = size - 16;
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+    }
     ctx.stroke();
   }
 
@@ -45,29 +56,42 @@ export function renderQRStickerCanvas(canvas, options = {}) {
   ctx.fillText('EczemaWiki Awareness', size / 2, 42);
 
   // Render QR Code onto temp canvas via qrcode library
-  if (window.QRCode) {
-    const tempContainer = document.createElement('div');
-    new window.QRCode(tempContainer, {
-      text: url,
-      width: 150,
-      height: 150,
-      colorDark: "#0F172A",
-      colorLight: "#FFFFFF",
-      correctLevel: window.QRCode.CorrectLevel ? window.QRCode.CorrectLevel.H : 2
-    });
+  const getQRLib = () => {
+    if (typeof QRCode !== 'undefined') {
+      if (typeof QRCode.toCanvas === 'function') return QRCode;
+      if (QRCode.default && typeof QRCode.default.toCanvas === 'function') return QRCode.default;
+    }
+    if (typeof window !== 'undefined' && window.QRCode) {
+      if (typeof window.QRCode.toCanvas === 'function') return window.QRCode;
+      if (window.QRCode.default && typeof window.QRCode.default.toCanvas === 'function') return window.QRCode.default;
+    }
+    return null;
+  };
 
-    setTimeout(() => {
-      const qrImg = tempContainer.querySelector('img') || tempContainer.querySelector('canvas');
-      if (qrImg) {
-        ctx.drawImage(qrImg, (size - 150) / 2, 70, 150, 150);
+  const qrLib = getQRLib();
+
+  if (qrLib) {
+    try {
+      if (typeof document !== 'undefined') {
+        const tempCanvas = document.createElement('canvas');
+        await qrLib.toCanvas(tempCanvas, url, {
+          width: 150,
+          margin: 1,
+          color: {
+            dark: '#0F172A',
+            light: '#FFFFFF'
+          }
+        });
+        ctx.drawImage(tempCanvas, (size - 150) / 2, 70, 150, 150);
         drawFooterCTA(ctx, size, ctaText, themeColor);
-      } else {
-        drawFallbackQR(ctx, size, ctaText, themeColor);
+        return;
       }
-    }, 100);
-  } else {
-    drawFallbackQR(ctx, size, ctaText, themeColor);
+    } catch (err) {
+      console.error('Failed to render QR canvas:', err);
+    }
   }
+
+  drawFallbackQR(ctx, size, ctaText, themeColor);
 }
 
 function drawFooterCTA(ctx, size, ctaText, themeColor) {
@@ -76,7 +100,7 @@ function drawFooterCTA(ctx, size, ctaText, themeColor) {
   ctx.textAlign = 'center';
 
   // Wrap CTA text if long
-  const words = ctaText.split(' ');
+  const words = (ctaText || '').split(' ');
   if (words.length > 4) {
     ctx.fillText(words.slice(0, 4).join(' '), size / 2, 245);
     ctx.fillText(words.slice(4).join(' '), size / 2, 265);
@@ -103,3 +127,4 @@ export function downloadCanvasAsPNG(canvas, filename = 'eczema-awareness-sticker
   link.href = canvas.toDataURL('image/png', 1.0);
   link.click();
 }
+
