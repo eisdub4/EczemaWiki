@@ -90,9 +90,11 @@ export function renderQRStickerGenerator() {
 
 export function bindQRStickerEvents() {
   const canvas = document.getElementById('qr-preview-canvas');
-  if (canvas) {
+
+  async function updatePreview() {
+    if (!canvas) return;
     const currentMyth = MYTH_CARDS.find(m => m.id === qrOptions.selectedMythId) || MYTH_CARDS[0];
-    renderQRStickerCanvas(canvas, {
+    await renderQRStickerCanvas(canvas, {
       url: currentMyth.canonicalUrl,
       ctaText: qrOptions.ctaText,
       themeColor: qrOptions.themeColor,
@@ -100,11 +102,14 @@ export function bindQRStickerEvents() {
     });
   }
 
+  // Initial preview render
+  updatePreview();
+
   const select = document.getElementById('qr-myth-select');
   if (select) {
     select.addEventListener('change', (e) => {
       qrOptions.selectedMythId = e.target.value;
-      bindQRStickerEvents();
+      updatePreview();
     });
   }
 
@@ -112,7 +117,7 @@ export function bindQRStickerEvents() {
   if (ctaInput) {
     ctaInput.addEventListener('input', (e) => {
       qrOptions.ctaText = e.target.value;
-      bindQRStickerEvents();
+      updatePreview();
     });
   }
 
@@ -120,7 +125,7 @@ export function bindQRStickerEvents() {
   shapeRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
       qrOptions.badgeShape = e.target.value;
-      bindQRStickerEvents();
+      updatePreview();
     });
   });
 
@@ -128,14 +133,19 @@ export function bindQRStickerEvents() {
   colorBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       qrOptions.themeColor = btn.getAttribute('data-color');
-      bindQRStickerEvents();
+      colorBtns.forEach(b => {
+        b.style.borderColor = b.getAttribute('data-color') === qrOptions.themeColor ? '#0F172A' : 'transparent';
+      });
+      updatePreview();
     });
   });
 
   const downloadBtn = document.getElementById('qr-download-btn');
   if (downloadBtn && canvas) {
-    downloadBtn.addEventListener('click', () => {
+    downloadBtn.addEventListener('click', async () => {
+      await updatePreview();
       downloadCanvasAsPNG(canvas, `eczema-awareness-sticker-${qrOptions.selectedMythId}.png`);
     });
   }
 }
+
