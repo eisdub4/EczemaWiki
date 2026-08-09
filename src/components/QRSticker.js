@@ -90,11 +90,9 @@ export function renderQRStickerGenerator() {
 
 export function bindQRStickerEvents() {
   const canvas = document.getElementById('qr-preview-canvas');
-
-  async function updatePreview() {
-    if (!canvas) return;
+  if (canvas) {
     const currentMyth = MYTH_CARDS.find(m => m.id === qrOptions.selectedMythId) || MYTH_CARDS[0];
-    await renderQRStickerCanvas(canvas, {
+    renderQRStickerCanvas(canvas, {
       url: currentMyth.canonicalUrl,
       ctaText: qrOptions.ctaText,
       themeColor: qrOptions.themeColor,
@@ -102,30 +100,27 @@ export function bindQRStickerEvents() {
     });
   }
 
-  // Initial preview render
-  updatePreview();
-
   const select = document.getElementById('qr-myth-select');
   if (select) {
     select.addEventListener('change', (e) => {
       qrOptions.selectedMythId = e.target.value;
-      updatePreview();
+      bindQRStickerEvents();
     });
   }
 
-  const ctaInput = document.getElementById('qr-cta-input');
+  const ctaInput = document.getElementById('qr-cta-text');
   if (ctaInput) {
     ctaInput.addEventListener('input', (e) => {
       qrOptions.ctaText = e.target.value;
-      updatePreview();
+      bindQRStickerEvents();
     });
   }
 
-  const shapeRadios = document.querySelectorAll('input[name="qr-badge-shape"]');
+  const shapeRadios = document.querySelectorAll('input[name="qr-shape"]');
   shapeRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
       qrOptions.badgeShape = e.target.value;
-      updatePreview();
+      bindQRStickerEvents();
     });
   });
 
@@ -133,19 +128,14 @@ export function bindQRStickerEvents() {
   colorBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       qrOptions.themeColor = btn.getAttribute('data-color');
-      colorBtns.forEach(b => {
-        b.style.borderColor = b.getAttribute('data-color') === qrOptions.themeColor ? '#0F172A' : 'transparent';
-      });
-      updatePreview();
+      bindQRStickerEvents();
     });
   });
 
   const downloadBtn = document.getElementById('qr-download-btn');
   if (downloadBtn && canvas) {
-    downloadBtn.addEventListener('click', async () => {
-      await updatePreview();
+    downloadBtn.addEventListener('click', () => {
       downloadCanvasAsPNG(canvas, `eczema-awareness-sticker-${qrOptions.selectedMythId}.png`);
     });
   }
 }
-
