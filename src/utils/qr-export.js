@@ -56,19 +56,9 @@ export async function renderQRStickerCanvas(canvas, options = {}) {
   ctx.fillText('EczemaWiki Awareness', size / 2, 42);
 
   // Render QR Code onto temp canvas via qrcode library
-  const getQRLib = () => {
-    if (typeof QRCode !== 'undefined') {
-      if (typeof QRCode.toCanvas === 'function') return QRCode;
-      if (QRCode.default && typeof QRCode.default.toCanvas === 'function') return QRCode.default;
-    }
-    if (typeof window !== 'undefined' && window.QRCode) {
-      if (typeof window.QRCode.toCanvas === 'function') return window.QRCode;
-      if (window.QRCode.default && typeof window.QRCode.default.toCanvas === 'function') return window.QRCode.default;
-    }
-    return null;
-  };
-
-  const qrLib = getQRLib();
+  const qrLib = (typeof QRCode !== 'undefined' && QRCode.toCanvas)
+    ? QRCode
+    : (typeof window !== 'undefined' && window.QRCode && window.QRCode.toCanvas ? window.QRCode : null);
 
   if (qrLib) {
     try {
@@ -127,3 +117,4 @@ export function downloadCanvasAsPNG(canvas, filename = 'eczema-awareness-sticker
   link.href = canvas.toDataURL('image/png', 1.0);
   link.click();
 }
+
